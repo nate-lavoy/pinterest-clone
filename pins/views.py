@@ -219,16 +219,18 @@ def view_pinboard(request, board_id):
         # Fetch pictures for the board
         cursor.execute("""
             SELECT p.pin_id, pic.picture_id, pic.original_url, pic.tags, 
+                   p.pinned_by,  -- Include pinned_by
                    COUNT(pl.user_id) AS like_count, 
+                   MAX(CASE WHEN pl.user_id = %s THEN 1 ELSE 0 END) AS user_liked,  -- Include user_liked
                    p.pinned_at, 
                    (SELECT COUNT(*) FROM Pin WHERE original_pin_id = p.pin_id) AS repin_count
             FROM Pin p
             JOIN Picture pic ON p.picture_id = pic.picture_id
             LEFT JOIN PictureLike pl ON pic.picture_id = pl.picture_id
             WHERE p.board_id = %s
-            GROUP BY p.pin_id, pic.picture_id, pic.original_url, pic.tags
+            GROUP BY p.pin_id, pic.picture_id, pic.original_url, pic.tags, p.pinned_by
             ORDER BY p.pinned_at DESC
-        """, [board_id])
+        """, [user_id, board_id])  # Pass user_id for user_liked
         pictures = dictfetchall(cursor)
 
         # Fetch comments for the pins
@@ -245,6 +247,14 @@ def view_pinboard(request, board_id):
             """, pin_ids)
             comments = dictfetchall(cursor)
 
+        # Fetch the user's follow streams
+        cursor.execute("""
+            SELECT stream_id, stream_name
+            FROM FollowStream
+            WHERE user_id = %s
+        """, [user_id])
+        streams = dictfetchall(cursor)
+
     return render(request, 'pins/view_pinboard.html', {
         'board_name': board_name,
         'created_by': created_by,
@@ -253,6 +263,7 @@ def view_pinboard(request, board_id):
         'pictures': pictures,
         'comments': comments,  # Pass comments to the template
         'comment_permission': comment_permission,
+        'streams': streams,  # Pass streams to the template
     })
 
 def repin(request, pin_id):
@@ -606,6 +617,7 @@ def view_follow_stream(request, stream_id):
         # Get pins from boards in this stream
         cursor.execute("""
             SELECT p.pin_id, pic.picture_id, pic.original_url, pic.tags, p.board_id,
+                   p.pinned_by,  -- Include pinned_by
                    COUNT(pl.user_id) AS like_count,
                    MAX(CASE WHEN pl.user_id = %s THEN 1 ELSE 0 END) AS user_liked,
                    (SELECT COUNT(*) 
@@ -618,7 +630,7 @@ def view_follow_stream(request, stream_id):
             JOIN Picture pic ON p.picture_id = pic.picture_id
             LEFT JOIN PictureLike pl ON pic.picture_id = pl.picture_id
             WHERE fb.stream_id = %s
-            GROUP BY p.pin_id, pic.picture_id, pic.original_url, pic.tags, p.board_id
+            GROUP BY p.pin_id, pic.picture_id, pic.original_url, pic.tags, p.board_id, p.pinned_by
             ORDER BY p.pinned_at DESC
         """, [user_id, user_id, stream_id])
         pictures = dictfetchall(cursor)

@@ -1,0 +1,47 @@
+{% extends 'pins/base.html' %}
+
+{% block title %}Create Pinboard{% endblock %}
+
+{% block content %}
+<div class="container py-5">
+
+    <div class="text-center mb-5">
+        <h1 class="fw-bold">Create a New Pinboard</h1>
+    </div>
+
+    <div class="row justify-content-center">
+        <div class="col-12 col-md-6">
+            <form method="post" class="p-4 bg-white rounded-4 shadow-sm">
+                {% csrf_token %}
+                
+                <div class="mb-4">
+                    <label for="board_name" class="form-label">Board Name</label>
+                    <input type="text" name="board_name" id="board_name" class="form-control" required placeholder="e.g., Art Ideas">
+                </div>
+
+                <div class="mb-4">
+                    <label for="comment_permission" class="form-label">Comment Permission</label>
+                    <select name="comment_permission" id="comment_permission" class="form-select" required>
+                        <option value="all">All</option>
+                        <option value="friends">Friends Only</option>
+                        <option value="none">No Comments</option>
+                    </select>
+                </div>
+
+                <div class="text-center">
+                    <button type="submit" class="btn btn-primary">
+                        <i class="fas fa-plus"></i> Create Board
+                    </button>
+                </div>
+            </form>
+
+            <div class="text-center mt-3">
+                <a href="{% url 'pinboards' %}" class="btn btn-outline-secondary btn-sm">
+                    <i class="fas fa-arrow-left"></i> Back to My Pinboards
+                </a>
+            </div>
+        </div>
+    </div>
+
+</div>
+{% endblock %}

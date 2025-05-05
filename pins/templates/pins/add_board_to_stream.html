@@ -1,0 +1,38 @@
+{% extends 'pins/base.html' %}
+
+{% block title %}Add Board to Stream{% endblock %}
+
+{% block content %}
+<div class="container py-5">
+
+    <div class="text-center mb-5">
+        <h1 class="fw-bold">Add Board to Stream</h1>
+    </div>
+
+    <div class="row justify-content-center">
+        <div class="col-12 col-md-6">
+            <form method="post" class="p-4 bg-white rounded-4 shadow-sm">
+                {% csrf_token %}
+                
+                <div class="mb-4">
+                    <label for="board_id" class="form-label">Select a Board</label>
+                    <select name="board_id" id="board_id" class="form-select" required>
+                        {% for board in boards %}
+                            <option value="{{ board.board_id }}">
+                                {{ board.board_name }} (Created by: {{ board.created_by }})
+                            </option>
+                        {% endfor %}
+                    </select>
+                </div>
+
+                <div class="text-center">
+                    <button type="submit" class="btn btn-primary">
+                        <i class="fas fa-plus"></i> Add Board
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+</div>
+{% endblock %}

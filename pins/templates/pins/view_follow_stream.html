@@ -1,0 +1,54 @@
+{% extends 'pins/base.html' %}
+
+{% block title %}{{ stream_name }}{% endblock %}
+
+{% block content %}
+<div class="container-fluid py-5">
+    <div class="row" style="min-height: 80vh;">
+        <!-- Sidebar: Stream Actions -->
+        <div class="col-12 col-md-3">
+            <div class="position-fixed" style="top: 100px; width: 25%;">
+                <h2 class="fw-bold mb-4 text-center">{{ stream_name }}</h2>
+                {% if boards %}
+                    <div class="bg-white rounded-4 shadow-sm p-3 mb-4">
+                        <h5 class="fw-semibold mb-3 text-center">Boards in this Stream</h5>
+                        <ul class="list-unstyled">
+                            {% for board in boards %}
+                                <li class="mb-2 d-flex justify-content-between align-items-center">
+                                    <span>
+                                        <i class="fas fa-chevron-right text-primary me-2"></i>{{ board.board_name }}
+                                    </span>
+                                    <form action="{% url 'remove_board_from_stream' stream_id=stream_id board_id=board.board_id %}" method="post" class="d-inline">
+                                        {% csrf_token %}
+                                        <button type="submit" class="btn btn-sm btn-outline-danger">
+                                            <i class="fas fa-trash"></i> Remove
+                                        </button>
+                                    </form>
+                                </li>
+                            {% endfor %}
+                        </ul>
+                    </div>
+                {% else %}
+                    <p class="text-muted text-center">No boards found in this stream.</p>
+                {% endif %}
+                <div class="text-center">
+                    <a href="{% url 'my_follow_streams' %}" class="btn btn-outline-secondary btn-sm">
+                        <i class="fas fa-arrow-left"></i> Back to Streams
+                    </a>
+                </div>
+            </div>
+        </div>
+
+        <!-- Main content: Pins -->
+        <div class="col-12 col-md-9">
+            {% if pictures %}
+                {% include 'pins/picture_cards.html' with pictures=pictures comments=comments %}
+            {% else %}
+                <div class="text-center text-muted mb-4">
+                    <p><i class="fas fa-camera"></i> Search for boards to add to this stream to see pictures!</p>
+                </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endblock %}

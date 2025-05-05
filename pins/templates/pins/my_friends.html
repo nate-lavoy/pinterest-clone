@@ -1,0 +1,33 @@
+{% extends 'pins/base.html' %}
+
+{% block title %}My Friends{% endblock %}
+
+{% block content %}
+<div class="container py-5">
+
+    <div class="text-center mb-5">
+        <h1 class="fw-bold">My Friends</h1>
+    </div>
+
+    <div class="row justify-content-center">
+        <div class="col-12 col-md-8">
+            {% if friends %}
+                {% for friend in friends %}
+                    <div class="p-4 mb-3 bg-white rounded-4 shadow-sm d-flex justify-content-between align-items-center friend-card">
+                        <div class="fw-semibold fs-5">
+                            <i class="fas fa-user-friends"></i> 
+                            <a href="{% url 'profile' friend.user_id %}" class="text-decoration-none">{{ friend.username }}</a>
+                        </div>
+                        <!-- Future: Add "Message" or "Remove Friend" button here -->
+                    </div>
+                {% endfor %}
+            {% else %}
+                <div class="text-center text-muted">
+                    <p><i class="fas fa-user-slash"></i> You have no friends yet.</p>
+                </div>
+            {% endif %}
+        </div>
+    </div>
+
+</div>
+{% endblock %}

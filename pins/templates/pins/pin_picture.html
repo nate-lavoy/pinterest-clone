@@ -1,0 +1,60 @@
+{% extends 'pins/base.html' %}
+
+{% block title %}Pin a Picture{% endblock %}
+
+{% block content %}
+<div class="container py-5">
+
+    <div class="text-center mb-5">
+        <h1 class="fw-bold">Pin a New Picture</h1>
+    </div>
+
+    <div class="row justify-content-center">
+        <div class="col-12 col-md-6">
+            <form method="post" class="p-4 bg-white rounded-4 shadow-sm">
+                {% csrf_token %}
+
+                <div class="mb-4">
+                    <label for="board_id" class="form-label">Choose Board</label>
+                    <select name="board_id" id="board_id" class="form-select" required>
+                        {% for board in boards %}
+                            <option value="{{ board.board_id }}" {% if board.board_id|stringformat:"s" == request.GET.board_id %}selected{% endif %}>
+                                {{ board.board_name }}
+                            </option>
+                        {% endfor %}
+                    </select>
+                </div>
+
+                <div class="mb-4">
+                    <label for="original_url" class="form-label">Image URL</label>
+                    <input type="text" name="original_url" id="original_url" class="form-control" placeholder="https://example.com/image.jpg" required>
+                </div>
+
+                <div class="mb-4">
+                    <label for="page_url" class="form-label">Page URL (where image was found)</label>
+                    <input type="text" name="page_url" id="page_url" class="form-control" placeholder="https://example.com">
+                </div>
+
+                <div class="mb-4">
+                    <label for="tags" class="form-label">Tags (comma-separated)</label>
+                    <input type="text" name="tags" id="tags" class="form-control" placeholder="art, design, inspiration">
+                </div>
+
+                <div class="text-center">
+                    <button type="submit" class="btn btn-success">
+                        <i class="fas fa-thumbtack"></i> Pin Picture
+                    </button>
+                </div>
+            </form>
+
+            <div class="text-center mt-4">
+                <a href="{% url 'pinboards' %}" class="btn btn-outline-secondary btn-sm">
+                    <i class="fas fa-arrow-left"></i> Back to My Pinboards
+                </a>
+            </div>
+        </div>
+    </div>
+
+</div>
+{% endblock %}
+

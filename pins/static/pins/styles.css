@@ -1,0 +1,161 @@
+/* --- Clean Reset and Basics --- */
+body {
+    padding-top: 80px;
+    background-color: #f5f7fa;
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    padding-bottom: 50px;
+}
+
+h1, h2, h3, h4, h5, h6 {
+    font-weight: 600;
+    color: #333;
+}
+
+a {
+    text-decoration: none;
+}
+
+a:hover {
+    text-decoration: underline;
+}
+
+/* Buttons */
+.btn {
+    border-radius: 30px;
+    padding: 8px 20px;
+}
+
+.btn-primary {
+    background-color: #007bff;
+    border: none;
+}
+
+.btn-primary:hover {
+    background-color: #0069d9;
+}
+
+.btn-outline-secondary {
+    border-radius: 30px;
+}
+
+/* Card tweaks (if using card in picture cards) */
+.card {
+    border: none;
+    box-shadow: 0px 3px 10px rgba(0, 0, 0, 0.08);
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+form {
+    background-color: #ffffff;
+    border-radius: 20px;
+    box-shadow: 0px 3px 10px rgba(0, 0, 0, 0.08);
+}
+
+form label {
+    font-weight: 600;
+    color: #333;
+}
+
+form input, form select, form textarea {
+    border-radius: 10px;
+}
+
+.user-card {
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.user-card:hover {
+    transform: translateY(-3px);
+    box-shadow: 0px 6px 15px rgba(0, 0, 0, 0.1);
+}
+
+.friend-card {
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.friend-card:hover {
+    transform: translateY(-3px);
+    box-shadow: 0px 6px 15px rgba(0, 0, 0, 0.1);
+}
+
+.request-card {
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.request-card:hover {
+    transform: translateY(-3px);
+    box-shadow: 0px 6px 15px rgba(0, 0, 0, 0.1);
+}
+
+.list-group-item {
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.list-group-item:hover {
+    transform: translateY(-2px);
+    box-shadow: 0px 4px 12px rgba(0, 0, 0, 0.08);
+}
+
+.text-muted i:hover {
+    transform: scale(1.2);
+    transition: transform 0.2s;
+}
+
+/* Core icon-button reset */
+.icon-button {
+    all: unset; /* Completely removes browser and Bootstrap styles */
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    font-size: 0.9rem;
+    color: inherit;
+    box-shadow: none; /* Explicitly remove shadows */
+}
+
+.icon-button.text-primary {
+    color: #007bff !important; /* Bootstrap primary blue */
+}
+
+.icon-button:hover,
+.icon-button:focus,
+.icon-button:active {
+    outline: none !important; /* Remove focus outline */
+    box-shadow: none !important; /* Prevent shadows on hover/focus/active */
+}
+
+/* Ensure hover icons scale */
+.icon-hover-grow {
+    transition: transform 0.2s;
+}
+.icon-hover-grow:hover {
+    transform: scale(1.2);
+}
+
+/* Like color toggle classes */
+.liked {
+    color: #dc3545 !important;  /* red */
+}
+
+.unliked {
+    color: #6c757d !important;  /* muted gray */
+}
+
+/* Slight spin for repin icon */
+.icon-hover-spin:hover {
+    transform: rotate(-15deg);
+    transition: transform 0.3s;
+}
+
+/* Shake for trash icon */
+.icon-hover-shake:hover {
+    animation: shake 0.4s;
+}
+
+@keyframes shake {
+    0% { transform: translate(1px, 0); }
+    25% { transform: translate(-2px, 0); }
+    50% { transform: translate(2px, 0); }
+    75% { transform: translate(-1px, 0); }
+    100% { transform: translate(0, 0); }
+}

@@ -1,0 +1,57 @@
+{% extends 'pins/base.html' %}
+
+{% block title %}Search: {{ query }}{% endblock %}
+
+{% block content %}
+<div class="container py-5">
+
+    <div class="text-center mb-5">
+        <h1 class="fw-bold">Search Results for "<span class="text-primary">{{ query }}</span>"</h1>
+    </div>
+
+    <div class="row justify-content-center">
+        <div class="col-12">
+            <!-- Display Boards -->
+            {% if boards %}
+                <h2 class="mb-4">Boards</h2>
+                <div class="row row-cols-1 row-cols-md-2 g-4 mb-5">
+                    {% for board in boards %}
+                    <div class="col">
+                        <div class="card h-100 shadow-sm">
+                            <div class="card-body">
+                                <h5 class="card-title">{{ board.board_name }}</h5>
+                                <p class="card-text text-muted mb-1">Comment Permission: {{ board.comment_permission }}</p>
+                                <p class="card-text text-muted mb-3">
+                                    Created by: <a href="{% url 'profile' board.created_by_id %}">{{ board.created_by }}</a>
+                                </p>
+                                <div class="d-flex">
+                                    {% for thumbnail in board.thumbnails %}
+                                        <img src="{{ thumbnail }}" alt="Thumbnail" class="img-thumbnail me-2" style="width: 50px; height: 50px; object-fit: cover;">
+                                    {% endfor %}
+                                </div>
+                            </div>
+                            <div class="card-footer text-end">
+                                <a href="{% url 'view_pinboard' board.board_id %}" class="btn btn-primary btn-sm">View Board</a>
+                            </div>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+            {% else %}
+                <h2 class="mb-4">Boards</h2>
+                <p class="text-muted">No matching boards found.</p>
+            {% endif %}
+
+            <!-- Display Pictures -->
+            {% if pictures %}
+                <h2 class="mb-4">Pictures</h2>
+                {% include 'pins/picture_cards.html' with pictures=pictures show_board_button=show_board_button %}
+            {% else %}
+                <h2 class="mb-4">Pictures</h2>
+                <p class="text-muted">No matching pictures found.</p>
+            {% endif %}
+        </div>
+    </div>
+
+</div>
+{% endblock %}

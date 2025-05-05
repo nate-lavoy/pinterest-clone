@@ -1,0 +1,35 @@
+from django.urls import path
+from django.shortcuts import redirect
+from . import views
+
+urlpatterns = [
+    path('', lambda request: redirect('pinboards')),
+    path('signup/', views.signup, name='signup'),
+    path('login/', views.login_view, name='login'),
+    path('logout/', views.logout_view, name='logout'),
+    path('edit_profile/', views.edit_profile, name='edit_profile'),
+    path('pinboards/', views.pinboards, name='pinboards'),
+    path('create_pinboard/', views.create_pinboard, name='create_pinboard'),
+    path('pin_picture/', views.pin_picture, name='pin_picture'),
+    path('blob_image/<int:picture_id>/', views.serve_blob_image, name='serve_blob_image'),
+    path('pinboard/<int:board_id>/', views.view_pinboard, name='view_pinboard'),
+    path('repin/<int:pin_id>/', views.repin, name='repin'),
+    path('like_picture/<int:pin_id>/', views.like_picture, name='like_picture'),
+    path('comment/<int:pin_id>/', views.comment_on_pin, name='comment_on_pin'),
+    path('find_users/', views.find_users, name='find_users'),
+    path('send_friend_request/<int:friend_id>/', views.send_friend_request, name='send_friend_request'),
+    path('pending_requests/', views.pending_requests, name='pending_requests'),
+    path('respond_request/<int:requester_id>/<str:response>/', views.respond_request, name='respond_request'),
+    path('friends/', views.my_friends, name='my_friends'),
+    path('create_follow_stream/', views.create_follow_stream, name='create_follow_stream'),
+    path('add_board_to_stream/', views.add_board_to_stream, name='add_board_to_stream'),
+    path('view_follow_stream/<int:stream_id>/', views.view_follow_stream, name='view_follow_stream'),
+    path('my_follow_streams/', views.my_follow_streams, name='my_follow_streams'),
+    path('delete_pin/<int:pin_id>/', views.delete_pin, name='delete_pin'),
+    path('search/', views.keyword_search, name='keyword_search'),
+    path('stream/<int:stream_id>/remove_board/<int:board_id>/', views.remove_board_from_stream, name='remove_board_from_stream'),
+    path('stream/<int:stream_id>/add-board/', views.add_board_to_stream, name='add_board_to_stream'),
+    path('profile/<int:user_id>/', views.profile, name='profile'),
+    path('delete_follow_stream/<int:stream_id>/', views.delete_follow_stream, name='delete_follow_stream'),
+    path('delete_pinboard/<int:board_id>/', views.delete_pinboard, name='delete_pinboard'),
+]

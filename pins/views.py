@@ -363,7 +363,7 @@ def comment_on_pin(request, pin_id):
         with connection.cursor() as cursor:
             # 1. Execute the SELECT
             cursor.execute("""
-                SELECT pb.comment_permission, pb.board_id
+                SELECT pb.comment_permission, pb.board_id, pb.user_id as borad_owner
                 FROM Pin p
                 JOIN Pinboard pb ON p.board_id = pb.board_id
                 WHERE p.pin_id = %s
@@ -377,14 +377,15 @@ def comment_on_pin(request, pin_id):
             return redirect('pinboards')  # If not found, redirect safely
 
         # 4. Only unpack AFTER checking
-        comment_permission, board_id = result
+        comment_permission, board_id, board_owner = result
 
         # 5. Check permission
         allowed = False
-        if comment_permission == 'all':
+        if user_id == board_owner:
+            # Allow if the user is the owner of the board
             allowed = True
-        elif comment_permission == 'none':
-            allowed = False
+        elif comment_permission == 'all':
+            allowed = True
         elif comment_permission == 'friends':
             with connection.cursor() as cursor:
                 cursor.execute("""

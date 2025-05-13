@@ -19,4 +19,14 @@ DROP CONSTRAINT comment_pin_id_fkey,
 ADD CONSTRAINT comment_pin_id_fkey
 FOREIGN KEY (pin_id) REFERENCES Pin(pin_id) ON DELETE CASCADE;
 
+ALTER TABLE Pin
+DROP CONSTRAINT pin_board_id_fkey,
+ADD CONSTRAINT pin_board_id_fkey
+FOREIGN KEY (board_id) REFERENCES Pinboard(board_id) ON DELETE CASCADE;
+
+ALTER TABLE FollowedBoard
+DROP CONSTRAINT followedboard_stream_id_fkey,
+ADD CONSTRAINT followedboard_stream_id_fkey
+FOREIGN KEY (stream_id) REFERENCES FollowStream(stream_id) ON DELETE CASCADE;
+
 TRUNCATE TABLE Comment, PictureLike, FollowedBoard, Friendship, Pin, Picture, Pinboard, AppUser, FollowStream  RESTART IDENTITY CASCADE;

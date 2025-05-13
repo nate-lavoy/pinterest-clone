@@ -52,6 +52,14 @@
                 </div>
                 {% endif %}
 
+                {% if pin.original_pin_id %}
+                    <div class="mt-2">
+                        <a href="{% url 'view_pinboard' pin.original_board_id %}#pin-{{ pin.original_pin_id }}" class="btn btn-outline-secondary btn-sm">
+                            View Original Pin
+                        </a>
+                    </div>
+                {% endif %}
+
                 <hr class="my-3">
 
                 <div class="mt-2">

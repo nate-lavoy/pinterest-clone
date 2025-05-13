@@ -219,18 +219,25 @@ def view_pinboard(request, board_id):
         # Fetch pictures for the board
         cursor.execute("""
             SELECT p.pin_id, pic.picture_id, pic.original_url, pic.tags, 
-                   p.pinned_by,  -- Include pinned_by
+                   p.pinned_by, 
+                   p.original_pin_id,  -- Include original pin ID
+                   op.board_id AS original_board_id,  -- Include original board ID
                    COUNT(pl.user_id) AS like_count, 
-                   MAX(CASE WHEN pl.user_id = %s THEN 1 ELSE 0 END) AS user_liked,  -- Include user_liked
+                   MAX(CASE WHEN pl.user_id = %s THEN 1 ELSE 0 END) AS user_liked,
+                   MAX(CASE WHEN rp.pinned_by = %s THEN 1 ELSE 0 END) AS user_repin,  -- Check if user repinned
                    p.pinned_at, 
-                   (SELECT COUNT(*) FROM Pin WHERE original_pin_id = p.pin_id) AS repin_count
+                   (SELECT COUNT(*) 
+                    FROM Pin 
+                    WHERE original_pin_id = COALESCE(p.original_pin_id, p.pin_id)) AS repin_count
             FROM Pin p
             JOIN Picture pic ON p.picture_id = pic.picture_id
             LEFT JOIN PictureLike pl ON pic.picture_id = pl.picture_id
+            LEFT JOIN Pin rp ON rp.original_pin_id = COALESCE(p.original_pin_id, p.pin_id) AND rp.pinned_by = %s  -- Check repins
+            LEFT JOIN Pin op ON p.original_pin_id = op.pin_id  -- Join to get original pin details
             WHERE p.board_id = %s
-            GROUP BY p.pin_id, pic.picture_id, pic.original_url, pic.tags, p.pinned_by
+            GROUP BY p.pin_id, pic.picture_id, pic.original_url, pic.tags, p.pinned_by, op.board_id
             ORDER BY p.pinned_at DESC
-        """, [user_id, board_id])  # Pass user_id for user_liked
+        """, [user_id, user_id, user_id, board_id])
         pictures = dictfetchall(cursor)
 
         # Fetch comments for the pins
@@ -617,22 +624,26 @@ def view_follow_stream(request, stream_id):
         # Get pins from boards in this stream
         cursor.execute("""
             SELECT p.pin_id, pic.picture_id, pic.original_url, pic.tags, p.board_id,
-                   p.pinned_by,  -- Include pinned_by
-                   COUNT(pl.user_id) AS like_count,
-                   MAX(CASE WHEN pl.user_id = %s THEN 1 ELSE 0 END) AS user_liked,
-                   (SELECT COUNT(*) 
+                p.pinned_by, 
+                p.original_pin_id,  -- Include original pin ID
+                op.board_id AS original_board_id,  -- Include original board ID
+                COUNT(pl.user_id) AS like_count,
+                MAX(CASE WHEN pl.user_id = %s THEN 1 ELSE 0 END) AS user_liked,
+                MAX(CASE WHEN rp.pinned_by = %s THEN 1 ELSE 0 END) AS user_repin,  -- Check if user repinned
+                (SELECT COUNT(*) 
                     FROM Pin 
-                    WHERE original_pin_id = COALESCE(p.original_pin_id, p.pin_id)) AS repin_count,
-                   MAX(CASE WHEN p.pinned_by = %s THEN 1 ELSE 0 END) AS user_repin
+                    WHERE original_pin_id = COALESCE(p.original_pin_id, p.pin_id)) AS repin_count
             FROM FollowedBoard fb
             JOIN Pinboard pb ON fb.board_id = pb.board_id
             JOIN Pin p ON p.board_id = pb.board_id
             JOIN Picture pic ON p.picture_id = pic.picture_id
             LEFT JOIN PictureLike pl ON pic.picture_id = pl.picture_id
+            LEFT JOIN Pin rp ON rp.original_pin_id = COALESCE(p.original_pin_id, p.pin_id) AND rp.pinned_by = %s  -- Check repins
+            LEFT JOIN Pin op ON p.original_pin_id = op.pin_id  -- Join to get original pin details
             WHERE fb.stream_id = %s
-            GROUP BY p.pin_id, pic.picture_id, pic.original_url, pic.tags, p.board_id, p.pinned_by
+            GROUP BY p.pin_id, pic.picture_id, pic.original_url, pic.tags, p.board_id, p.pinned_by, op.board_id
             ORDER BY p.pinned_at DESC
-        """, [user_id, user_id, stream_id])
+        """, [user_id, user_id, user_id, stream_id])
         pictures = dictfetchall(cursor)
 
         # Pull all comments for these pins
@@ -767,23 +778,45 @@ def keyword_search(request):
     query = request.GET.get('q', '').strip()
     pictures = []
     boards = []
+    comments = []  # Initialize comments
     if query:
         with connection.cursor() as cursor:
             # Search for pictures
             cursor.execute("""
                 SELECT DISTINCT p.pin_id, pic.picture_id, pic.original_url, pic.tags, p.board_id, 
+                                p.pinned_by, 
+                                p.original_pin_id,  -- Include original pin ID
+                                op.board_id AS original_board_id,  -- Include original board ID
                                 COUNT(pl.user_id) AS like_count, 
+                                MAX(CASE WHEN pl.user_id = %s THEN 1 ELSE 0 END) AS user_liked,
+                                MAX(CASE WHEN rp.pinned_by = %s THEN 1 ELSE 0 END) AS user_repin,  -- Check if user repinned
                                 p.pinned_at, 
-                                (SELECT COUNT(*) FROM Pin WHERE original_pin_id = p.pin_id) AS repin_count
+                                (SELECT COUNT(*) 
+                                FROM Pin 
+                                WHERE original_pin_id = COALESCE(p.original_pin_id, p.pin_id)) AS repin_count
                 FROM Pin p
                 JOIN Picture pic ON p.picture_id = pic.picture_id
                 LEFT JOIN PictureLike pl ON pic.picture_id = pl.picture_id
+                LEFT JOIN Pin rp ON rp.original_pin_id = COALESCE(p.original_pin_id, p.pin_id) AND rp.pinned_by = %s  -- Check repins
+                LEFT JOIN Pin op ON p.original_pin_id = op.pin_id  -- Join to get original pin details
                 WHERE pic.tags ILIKE %s
-                AND p.original_pin_id IS NULL
-                GROUP BY p.pin_id, pic.picture_id, pic.original_url, pic.tags, p.board_id
+                GROUP BY p.pin_id, pic.picture_id, pic.original_url, pic.tags, p.board_id, p.pinned_by, op.board_id
                 ORDER BY p.pinned_at DESC
-            """, [f'%{query}%'])
+            """, [user_id, user_id, user_id, f'%{query}%'])
             pictures = dictfetchall(cursor)
+
+            # Fetch comments for the pins
+            pin_ids = [pic['pin_id'] for pic in pictures]
+            if pin_ids:
+                format_strings = ','.join(['%s'] * len(pin_ids))
+                cursor.execute(f"""
+                    SELECT c.comment_id, c.pin_id, u.username, c.comment_text, c.commented_at
+                    FROM Comment c
+                    JOIN AppUser u ON c.user_id = u.user_id
+                    WHERE c.pin_id IN ({format_strings})
+                    ORDER BY c.commented_at ASC
+                """, pin_ids)
+                comments = dictfetchall(cursor)
 
             # Search for boards with thumbnails
             cursor.execute("""
@@ -807,6 +840,7 @@ def keyword_search(request):
         'query': query,
         'pictures': pictures,
         'boards': boards,
+        'comments': comments,  # Pass comments to the template
         'show_board_button': True
     })
 

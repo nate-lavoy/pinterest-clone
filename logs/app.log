@@ -1,0 +1,57 @@
+INFO 2025-05-13 20:43:37,416 autoreload Watching for file changes with StatReloader
+INFO 2025-05-13 20:43:39,418 basehttp "GET / HTTP/1.1" 302 0
+INFO 2025-05-13 20:43:39,439 basehttp "GET /pinboards/ HTTP/1.1" 200 8205
+INFO 2025-05-13 20:43:42,017 views User logged out: nate (ID: 1)
+INFO 2025-05-13 20:43:42,021 basehttp "GET /logout/ HTTP/1.1" 302 0
+INFO 2025-05-13 20:43:42,027 basehttp "GET /login/ HTTP/1.1" 200 4848
+INFO 2025-05-13 20:43:45,758 views User logged in: nate (ID: 1)
+INFO 2025-05-13 20:43:45,763 basehttp "POST /login/ HTTP/1.1" 302 0
+INFO 2025-05-13 20:43:45,777 basehttp "GET /pinboards/ HTTP/1.1" 200 8205
+INFO 2025-05-13 20:43:48,204 basehttp "GET /create_pinboard/ HTTP/1.1" 200 5152
+INFO 2025-05-13 20:43:52,210 views User 1 created a new pinboard: log test (Comment Permission: all)
+INFO 2025-05-13 20:43:52,215 basehttp "POST /create_pinboard/ HTTP/1.1" 302 0
+INFO 2025-05-13 20:43:52,229 basehttp "GET /pinboards/ HTTP/1.1" 200 9327
+INFO 2025-05-13 20:43:53,824 basehttp "GET /pinboard/9/ HTTP/1.1" 200 7021
+INFO 2025-05-13 20:43:54,765 basehttp "GET /pin_picture/?board_id=9 HTTP/1.1" 200 5969
+INFO 2025-05-13 20:44:19,421 views User 1 pinned a new picture to board 9 with tags: log, wood
+INFO 2025-05-13 20:44:19,422 basehttp "POST /pin_picture/?board_id=9 HTTP/1.1" 302 0
+INFO 2025-05-13 20:44:19,447 basehttp "GET /pinboard/9/ HTTP/1.1" 200 10207
+INFO 2025-05-13 20:44:24,096 views User 1 commented on pin 26: logging
+INFO 2025-05-13 20:44:24,097 basehttp "POST /comment/26/ HTTP/1.1" 302 0
+INFO 2025-05-13 20:44:24,119 basehttp "GET /pinboard/9/ HTTP/1.1" 200 10633
+INFO 2025-05-13 20:44:26,557 basehttp "POST /like_picture/26/ HTTP/1.1" 302 0
+INFO 2025-05-13 20:44:26,580 basehttp "GET /pinboard/9/ HTTP/1.1" 200 10631
+INFO 2025-05-13 20:45:07,617 basehttp "GET /friends/ HTTP/1.1" 200 4711
+INFO 2025-05-13 20:45:12,648 views User logged out: nate (ID: 1)
+INFO 2025-05-13 20:45:12,652 basehttp "GET /logout/ HTTP/1.1" 302 0
+INFO 2025-05-13 20:45:12,657 basehttp "GET /login/ HTTP/1.1" 200 4848
+INFO 2025-05-13 20:45:14,744 basehttp "GET /signup/ HTTP/1.1" 200 5367
+INFO 2025-05-13 20:45:33,266 basehttp "POST /signup/ HTTP/1.1" 302 0
+INFO 2025-05-13 20:45:33,271 basehttp "GET /login/ HTTP/1.1" 200 4848
+INFO 2025-05-13 20:45:38,747 views User logged in: logtest (ID: 5)
+INFO 2025-05-13 20:45:38,752 basehttp "POST /login/ HTTP/1.1" 302 0
+INFO 2025-05-13 20:45:38,764 basehttp "GET /pinboards/ HTTP/1.1" 200 4251
+INFO 2025-05-13 20:45:43,764 basehttp "GET /my_follow_streams/ HTTP/1.1" 200 4013
+INFO 2025-05-13 20:45:44,557 basehttp "GET /create_follow_stream/ HTTP/1.1" 200 4434
+INFO 2025-05-13 20:45:47,764 basehttp "POST /create_follow_stream/ HTTP/1.1" 302 0
+INFO 2025-05-13 20:45:47,776 basehttp "GET /my_follow_streams/ HTTP/1.1" 200 5064
+INFO 2025-05-13 20:45:49,671 basehttp "GET /view_follow_stream/9/ HTTP/1.1" 200 4447
+INFO 2025-05-13 20:45:53,731 basehttp "GET /find_users/ HTTP/1.1" 200 5523
+INFO 2025-05-13 20:45:55,422 views User 5 sent a friend request to user 1
+INFO 2025-05-13 20:45:55,426 basehttp "GET /send_friend_request/1/ HTTP/1.1" 302 0
+INFO 2025-05-13 20:45:55,440 basehttp "GET /find_users/ HTTP/1.1" 200 4917
+INFO 2025-05-13 20:45:59,214 views User 5 performed a search with query: 'log'
+INFO 2025-05-13 20:45:59,224 basehttp "GET /search/?q=log HTTP/1.1" 200 8613
+INFO 2025-05-13 20:46:01,768 basehttp "GET /pinboard/9/ HTTP/1.1" 200 9956
+INFO 2025-05-13 20:46:05,233 basehttp "POST /add_board_to_stream/ HTTP/1.1" 302 0
+INFO 2025-05-13 20:46:05,254 basehttp "GET /view_follow_stream/9/ HTTP/1.1" 200 8749
+INFO 2025-05-13 20:46:08,196 basehttp "POST /like_picture/26/ HTTP/1.1" 302 0
+INFO 2025-05-13 20:46:08,217 basehttp "GET /view_follow_stream/9/ HTTP/1.1" 200 8747
+INFO 2025-05-13 20:46:09,245 basehttp "GET /my_follow_streams/ HTTP/1.1" 200 5330
+INFO 2025-05-13 20:46:10,063 basehttp "GET /view_follow_stream/9/ HTTP/1.1" 200 8747
+INFO 2025-05-13 20:46:16,157 views User 5 commented on pin 26: nice log
+INFO 2025-05-13 20:46:16,157 basehttp "POST /comment/26/ HTTP/1.1" 302 0
+INFO 2025-05-13 20:46:16,176 basehttp "GET /view_follow_stream/9/ HTTP/1.1" 200 9177
+INFO 2025-05-13 20:46:18,875 views User logged out: logtest (ID: 5)
+INFO 2025-05-13 20:46:18,878 basehttp "GET /logout/ HTTP/1.1" 302 0
+INFO 2025-05-13 20:46:18,884 basehttp "GET /login/ HTTP/1.1" 200 4848

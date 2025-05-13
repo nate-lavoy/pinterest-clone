@@ -4,6 +4,9 @@ from django.http import HttpResponseNotFound, HttpResponse
 from django.db import connection
 import requests
 from psycopg2 import Binary
+import logging
+
+logger = logging.getLogger('app')
 
 def download_image_as_blob(image_url):
     "download image as a blob--HELPER FUNCTION"
@@ -50,24 +53,30 @@ def login_view(request):
             row = cursor.fetchone()
 
         if row is None:
+            logger.warning(f"Failed login attempt for identifier: {identifier}")
             messages.error(request, 'User not found')
             return redirect('login')
 
         user_id, username, stored_password = row
 
         if stored_password != password:
+            logger.warning(f"Incorrect password for user: {username}")
             messages.error(request, 'Incorrect password')
             return redirect('login')
 
         # Log the user in
         request.session['user_id'] = user_id
         request.session['username'] = username
+        logger.info(f"User logged in: {username} (ID: {user_id})")
 
         return redirect('pinboards')  # Redirect to pinboards after login
 
     return render(request, 'pins/login.html')
 
 def logout_view(request):
+    user_id = request.session.get('user_id')
+    username = request.session.get('username', 'Unknown')
+    logger.info(f"User logged out: {username} (ID: {user_id})")
     request.session.flush()  # Clears all session data
     return redirect('login')
 
@@ -78,6 +87,7 @@ def edit_profile(request):
 
     if request.method == 'POST':
         new_bio = request.POST['profile_bio']
+        logger.info(f"User {user_id} updated their profile bio to: {new_bio}")
 
         with connection.cursor() as cursor:
             cursor.execute("""
@@ -132,6 +142,7 @@ def create_pinboard(request):
 
         board_name = request.POST['board_name']
         comment_permission = request.POST['comment_permission']
+        logger.info(f"User {user_id} created a new pinboard: {board_name} (Comment Permission: {comment_permission})")
 
         with connection.cursor() as cursor:
             cursor.execute("""
@@ -155,7 +166,6 @@ def pin_picture(request):
         tags = request.POST.get('tags')
 
         with connection.cursor() as cursor:
-            # Insert the picture into the Picture table
             cursor.execute("""
                 INSERT INTO Picture (original_url, page_url, tags)
                 VALUES (%s, %s, %s)
@@ -163,13 +173,12 @@ def pin_picture(request):
             """, [original_url, page_url, tags])
             picture_id = cursor.fetchone()[0]
 
-            # Insert the pin into the Pin table
             cursor.execute("""
                 INSERT INTO Pin (board_id, picture_id, pinned_by, is_repin, original_pin_id)
                 VALUES (%s, %s, %s, FALSE, NULL)
             """, [board_id, picture_id, user_id])
 
-        # Redirect to the board the picture was pinned to
+        logger.info(f"User {user_id} pinned a new picture to board {board_id} with tags: {tags}")
         return redirect('view_pinboard', board_id=board_id)
 
     # Fetch the user's boards for the dropdown
@@ -291,6 +300,7 @@ def repin(request, pin_id):
             board_exists = cursor.fetchone()
 
         if not board_exists:
+            logger.warning(f"User {user_id} tried to repin to an invalid board: {board_id}")
             messages.error(request, 'Invalid board selection.')
             return redirect('pinboards')
 
@@ -304,6 +314,7 @@ def repin(request, pin_id):
             row = cursor.fetchone()
 
         if not row:
+            logger.error(f"User {user_id} tried to repin a non-existent pin: {pin_id}")
             messages.error(request, 'The pin you are trying to repin does not exist.')
             return redirect('pinboards')
 
@@ -316,6 +327,7 @@ def repin(request, pin_id):
                 VALUES (%s, %s, %s, TRUE, %s)
             """, [board_id, picture_id, user_id, root_pin_id])
 
+        logger.info(f"User {user_id} repinned pin {pin_id} to board {board_id}")
         messages.success(request, 'Pin successfully repinned!')
         return redirect('pinboards')
 
@@ -379,54 +391,38 @@ def comment_on_pin(request, pin_id):
         comment_text = request.POST['comment_text']
 
         with connection.cursor() as cursor:
-            # 1. Execute the SELECT
             cursor.execute("""
-                SELECT pb.comment_permission, pb.board_id, pb.user_id as borad_owner
-                FROM Pin p
-                JOIN Pinboard pb ON p.board_id = pb.board_id
-                WHERE p.pin_id = %s
-            """, [pin_id])
+                INSERT INTO Comment (user_id, pin_id, comment_text)
+                VALUES (%s, %s, %s)
+            """, [user_id, pin_id, comment_text])
 
-            # 2. Immediately fetch
-            result = cursor.fetchone()
-
-        # 3. NOW check if result is None
-        if result is None:
-            return redirect('pinboards')  # If not found, redirect safely
-
-        # 4. Only unpack AFTER checking
-        comment_permission, board_id, board_owner = result
-
-        # 5. Check permission
-        allowed = False
-        if user_id == board_owner:
-            # Allow if the user is the owner of the board
-            allowed = True
-        elif comment_permission == 'all':
-            allowed = True
-        elif comment_permission == 'friends':
-            with connection.cursor() as cursor:
-                cursor.execute("""
-                    SELECT 1
-                    FROM Friendship
-                    WHERE user_id = (SELECT user_id FROM Pinboard WHERE board_id = %s)
-                      AND friend_id = %s
-                      AND status = 'accepted'
-                """, [board_id, user_id])
-                friendship = cursor.fetchone()
-                if friendship:
-                    allowed = True
-
-        # 6. Insert the comment if allowed
-        if allowed:
-            with connection.cursor() as cursor:
-                cursor.execute("""
-                    INSERT INTO Comment (user_id, pin_id, comment_text)
-                    VALUES (%s, %s, %s)
-                """, [user_id, pin_id, comment_text])
-
+        logger.info(f"User {user_id} commented on pin {pin_id}: {comment_text}")
         referer = request.META.get('HTTP_REFERER', '/')
         return redirect(f"{referer}#pin-{pin_id}")
+
+
+def delete_comment(request, comment_id):
+    user_id = request.session.get('user_id')
+    if not user_id:
+        return redirect('login')
+
+    with connection.cursor() as cursor:
+        cursor.execute("""
+            SELECT pin_id
+            FROM Comment
+            WHERE comment_id = %s AND user_id = %s
+        """, [comment_id, user_id])
+        result = cursor.fetchone()
+
+        if result:
+            pin_id = result[0]
+            logger.info(f"User {user_id} deleted comment {comment_id} on pin {pin_id}")
+            cursor.execute("DELETE FROM Comment WHERE comment_id = %s", [comment_id])
+            referer = request.META.get('HTTP_REFERER', '/')
+            return redirect(f"{referer}#pin-{pin_id}")
+
+    logger.warning(f"User {user_id} attempted to delete a non-existent or unauthorized comment: {comment_id}")
+    return redirect('pinboards')
 
 
 def find_users(request):
@@ -456,6 +452,7 @@ def send_friend_request(request, friend_id):
     if not user_id:
         return redirect('login')
 
+    logger.info(f"User {user_id} sent a friend request to user {friend_id}")
     with connection.cursor() as cursor:
         cursor.execute("""
             INSERT INTO Friendship (user_id, friend_id, status)
@@ -489,13 +486,14 @@ def respond_request(request, requester_id, response):
 
     if response == 'accept':
         new_status = 'accepted'
+        logger.info(f"User {user_id} accepted friend request from user {requester_id}")
     elif response == 'decline':
         new_status = 'declined'
+        logger.info(f"User {user_id} declined friend request from user {requester_id}")
     else:
         return redirect('pending_requests')
 
     with connection.cursor() as cursor:
-        # Update the status
         cursor.execute("""
             UPDATE Friendship
             SET status = %s
@@ -503,7 +501,6 @@ def respond_request(request, requester_id, response):
         """, [new_status, requester_id, user_id])
 
         if new_status == 'accepted':
-            # Create reciprocal friendship
             cursor.execute("""
                 INSERT INTO Friendship (user_id, friend_id, status)
                 VALUES (%s, %s, 'accepted')
@@ -731,15 +728,16 @@ def delete_pin(request, pin_id):
         return redirect('login')
 
     with connection.cursor() as cursor:
-        # Make sure the pin belongs to this user
         cursor.execute("SELECT board_id FROM Pin WHERE pin_id = %s AND pinned_by = %s", [pin_id, user_id])
         result = cursor.fetchone()
 
         if result:
             board_id = result[0]
+            logger.info(f"User {user_id} deleted pin {pin_id} from board {board_id}")
             cursor.execute("DELETE FROM Pin WHERE pin_id = %s", [pin_id])
             return redirect(f'/pinboard/{board_id}/')
 
+    logger.warning(f"User {user_id} attempted to delete a non-existent or unauthorized pin: {pin_id}")
     return redirect('pinboards')
 
 def delete_pinboard(request, board_id):
@@ -749,19 +747,21 @@ def delete_pinboard(request, board_id):
 
     if request.method == 'POST':
         with connection.cursor() as cursor:
-            # Ensure the user owns the pinboard
             cursor.execute("""
-                SELECT 1
+                SELECT board_name
                 FROM Pinboard
                 WHERE board_id = %s AND user_id = %s
             """, [board_id, user_id])
-            board_exists = cursor.fetchone()
+            board = cursor.fetchone()
 
-            if not board_exists:
+            if not board:
+                logger.warning(f"User {user_id} attempted to delete a non-existent or unauthorized pinboard: {board_id}")
                 messages.error(request, 'You do not have permission to delete this pinboard.')
                 return redirect('pinboards')
 
-            # Delete the pinboard
+            board_name = board[0]
+            logger.info(f"User {user_id} deleted pinboard: {board_name} (ID: {board_id})")
+
             cursor.execute("""
                 DELETE FROM Pinboard
                 WHERE board_id = %s AND user_id = %s
@@ -776,6 +776,8 @@ def keyword_search(request):
         return redirect('login')
 
     query = request.GET.get('q', '').strip()
+    logger.info(f"User {user_id} performed a search with query: '{query}'")
+
     pictures = []
     boards = []
     comments = []  # Initialize comments
